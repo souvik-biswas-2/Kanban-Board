@@ -89,6 +89,11 @@ section .task-column{
     padding: 0 var(--padding-xl);
 }
 
+section .task-column.hover-over{
+    border: 2px dashed var(--text-primary-color);
+    scale: 1.02;
+}
+
 section .task-column .heading{
     width: 100%;
     display: flex;
@@ -105,7 +110,7 @@ section .task-column .task{
     display: flex;
     flex-direction: column;
     padding: var(--padding-s);
-
+    cursor: grab;
 }
 
 section .task-column .task button {
