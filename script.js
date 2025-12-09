@@ -90,31 +90,40 @@ modalBg.addEventListener("click", (event) => {
 
 addNewTask.addEventListener("click", () => {
     const taskTitle = document.querySelector("#task-title").value;
-  const taskDesc = document.querySelector("#task-desc").value;
+    const taskDesc = document.querySelector("#task-desc").value;
 
-  if (!taskTitle) {
-    alert("Please enter a task title.");
-    return;
-  }
+    if (!taskTitle) {
+        alert("Please enter a task title.");
+        return;
+    }
 
-  const div = document.createElement("div");
-  div.classList.add("task");
-  div.setAttribute("draggable", "true");
+    const div = document.createElement("div");
+    div.classList.add("task");
+    div.setAttribute("draggable", "true");
+    
+    const taskIndex = document.querySelectorAll('.task').length + 1;
+    div.id = `task-${taskIndex}`;
 
-  div.innerHTML = `
-    <h3>${taskTitle}</h3>
-    <p>${taskDesc}</p>
-    <button class="delete-btn">Delete</button>
-  `;
+    div.innerHTML = `
+        <h3>${taskTitle}</h3>
+        <p>${taskDesc}</p>
+        <button class="delete-btn">Delete</button>
+    `;
 
-  todo.appendChild(div);
+    todo.appendChild(div);
 
-  div.addEventListener("drag", (event) => {
-    dragElement = div;
-  });
+    div.addEventListener("dragstart", (e) => {
+        e.dataTransfer.setData("text/plain", div.id);
+        div.classList.add('is-dragging');
+    });
 
-  document.querySelector("#task-title").value = "";
-  document.querySelector("#task-desc").value = "";
+    div.addEventListener("dragend", (e) => {
+        div.classList.remove('is-dragging');
+    });
 
-  modal.classList.remove("active");
+    updateTaskCount(todo);
+    
+    document.querySelector("#task-title").value = "";
+    document.querySelector("#task-desc").value = "";
+    modal.classList.remove("active");
 });
