@@ -4,55 +4,115 @@ const done = document.querySelector('#done');
 
 const taskColumns = [todo, progress, done];
 
+// Storage key for localStorage
+const STORAGE_KEY = 'kanban_tasks';
+
+// ===== STORAGE FUNCTIONS =====
+
+// Save all tasks to localStorage
+function saveTasks() {
+    const tasks = [];
+    
+    taskColumns.forEach(column => {
+        const columnId = column.id;
+        const columnTasks = column.querySelectorAll('.task');
+        
+        columnTasks.forEach(task => {
+            const title = task.querySelector('h3').textContent;
+            const description = task.querySelector('p').textContent;
+            
+            tasks.push({
+                id: task.id,
+                title: title,
+                description: description,
+                column: columnId
+            });
+        });
+    });
+    
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+}
+
+// Load all tasks from localStorage
+function loadTasks() {
+    const savedTasks = localStorage.getItem(STORAGE_KEY);
+    
+    if (!savedTasks) return;
+    
+    const tasks = JSON.parse(savedTasks);
+    
+    tasks.forEach(taskData => {
+        const column = document.querySelector(`#${taskData.column}`);
+        
+        if (column) {
+            const div = document.createElement('div');
+            div.classList.add('task');
+            div.setAttribute('draggable', 'true');
+            div.id = taskData.id;
+            
+            div.innerHTML = `
+                <h3>${taskData.title}</h3>
+                <p>${taskData.description}</p>
+                <button class="delete-btn">Delete</button>
+            `;
+            
+            column.appendChild(div);
+            
+            // Attach listeners
+            attachDeleteListener(div);
+            attachDragListener(div);
+            updateTaskCount(column);
+        }
+    });
+}
+
+// ===== UTILITY FUNCTIONS =====
+
 function updateTaskCount(column) {
     const taskCount = column.querySelectorAll('.task').length;
     const countDisplay = column.querySelector('.heading .right');
     countDisplay.textContent = `Count: ${taskCount}`;
 }
 
-taskColumns.forEach(updateTaskCount);
-
-// DELETE FEATURE: Function to handle task deletion
 function deleteTask(taskElement) {
     const column = taskElement.closest('.task-column');
     taskElement.remove();
-    updateTaskCount(column);
+    if (column) {
+        updateTaskCount(column);
+        saveTasks();
+    }
 }
 
-// DELETE FEATURE: Function to attach delete button listeners
 function attachDeleteListener(taskElement) {
     const deleteButton = taskElement.querySelector('.delete-btn');
-    
     if (deleteButton) {
-        deleteButton.addEventListener("click", () => {
+        deleteButton.addEventListener("click", (e) => {
+            e.stopPropagation();
             deleteTask(taskElement);
         });
     }
 }
 
-// DELETE FEATURE: Apply delete listeners to all existing tasks
-document.querySelectorAll('.task').forEach(task => {
-    attachDeleteListener(task);
-});
-
-document.querySelectorAll('.task').forEach((task, index) => {
-    if (!task.id) {
-        task.id = `task-${index + 1}`; 
-    }
-
-    task.addEventListener("dragstart", (e) => {
-        e.dataTransfer.setData("text/plain", task.id); 
-        e.currentTarget.classList.add('is-dragging'); 
+function attachDragListener(taskElement) {
+    taskElement.addEventListener("dragstart", (e) => {
+        e.dataTransfer.setData("text/plain", taskElement.id);
+        taskElement.classList.add('is-dragging');
     });
 
-    task.addEventListener("dragend", (e) => {
-        e.currentTarget.classList.remove('is-dragging');
+    taskElement.addEventListener("dragend", (e) => {
+        taskElement.classList.remove('is-dragging');
     });
-});
+}
+
+// ===== LOAD TASKS ON PAGE LOAD =====
+
+loadTasks();
+
+// ===== DRAG AND DROP =====
 
 taskColumns.forEach(column => {
     column.addEventListener("dragover", (e) => {
-        e.preventDefault(); 
+        e.preventDefault();
     });
 
     column.addEventListener("dragenter", (e) => {
@@ -73,16 +133,19 @@ taskColumns.forEach(column => {
         const draggedTask = document.getElementById(data);
 
         if (draggedTask) {
-            const originalColumn = draggedTask.closest('.task-column'); 
-            column.appendChild(draggedTask); 
+            const originalColumn = draggedTask.closest('.task-column');
+            column.appendChild(draggedTask);
             
             if (originalColumn && originalColumn !== column) {
                 updateTaskCount(originalColumn);
             }
             updateTaskCount(column);
+            saveTasks();
         }
     });
 });
+
+// ===== MODAL AND ADD TASK =====
 
 const toggleModalButton = document.querySelector("#toggle-modal");
 const modal = document.querySelector(".modal");
@@ -110,7 +173,7 @@ addNewTask.addEventListener("click", () => {
     div.classList.add("task");
     div.setAttribute("draggable", "true");
     
-    const taskIndex = document.querySelectorAll('.task').length + 1;
+    const taskIndex = Date.now();
     div.id = `task-${taskIndex}`;
 
     div.innerHTML = `
@@ -121,19 +184,14 @@ addNewTask.addEventListener("click", () => {
 
     todo.appendChild(div);
 
-    div.addEventListener("dragstart", (e) => {
-        e.dataTransfer.setData("text/plain", div.id);
-        div.classList.add('is-dragging');
-    });
-
-    div.addEventListener("dragend", (e) => {
-        div.classList.remove('is-dragging');
-    });
-
-    // DELETE FEATURE: Attach delete listener to newly created task
     attachDeleteListener(div);
+    attachDragListener(div);
 
     updateTaskCount(todo);
+    
+    // Save to localStorage
+    saveTasks();
+    
     document.querySelector("#task-title").value = "";
     document.querySelector("#task-desc").value = "";
     modal.classList.remove("active");
