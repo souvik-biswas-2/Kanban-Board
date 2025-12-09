@@ -73,3 +73,16 @@ taskColumns.forEach(column => {
         }
     });
 });
+
+
+const toggleModalButton = document.querySelector("#toggle-modal");
+const modal = document.querySelector(".modal");
+const modalBg = document.querySelector(".modal .bg");
+
+toggleModalButton.addEventListener("click", (event) => {
+    modal.classList.toggle("active");
+});
+
+modalBg.addEventListener("click", (event) => {
+    modal.classList.remove("active");   
+});
