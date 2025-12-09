@@ -6,46 +6,58 @@ const taskColumns = [todo, progress, done];
 
 function updateTaskCount(column) {
     const taskCount = column.querySelectorAll('.task').length;
-    
     const countDisplay = column.querySelector('.heading .right');
-
     countDisplay.textContent = `Count: ${taskCount}`;
 }
 
 taskColumns.forEach(updateTaskCount);
 
-document.querySelectorAll('.task').forEach((task, index) => {
+// DELETE FEATURE: Function to handle task deletion
+function deleteTask(taskElement) {
+    const column = taskElement.closest('.task-column');
+    taskElement.remove();
+    updateTaskCount(column);
+}
+
+// DELETE FEATURE: Function to attach delete button listeners
+function attachDeleteListener(taskElement) {
+    const deleteButton = taskElement.querySelector('.delete-btn');
     
+    if (deleteButton) {
+        deleteButton.addEventListener("click", () => {
+            deleteTask(taskElement);
+        });
+    }
+}
+
+// DELETE FEATURE: Apply delete listeners to all existing tasks
+document.querySelectorAll('.task').forEach(task => {
+    attachDeleteListener(task);
+});
+
+document.querySelectorAll('.task').forEach((task, index) => {
     if (!task.id) {
         task.id = `task-${index + 1}`; 
     }
 
     task.addEventListener("dragstart", (e) => {
         e.dataTransfer.setData("text/plain", task.id); 
-
         e.currentTarget.classList.add('is-dragging'); 
-        
     });
 
     task.addEventListener("dragend", (e) => {
-
         e.currentTarget.classList.remove('is-dragging');
-        
     });
 });
 
-
 taskColumns.forEach(column => {
-    
     column.addEventListener("dragover", (e) => {
         e.preventDefault(); 
     });
 
-    
     column.addEventListener("dragenter", (e) => {
         column.classList.add("hover-over");
     });
-    
     
     column.addEventListener("dragleave", (e) => {
         if (!column.contains(e.relatedTarget)) {
@@ -61,9 +73,7 @@ taskColumns.forEach(column => {
         const draggedTask = document.getElementById(data);
 
         if (draggedTask) {
-            
             const originalColumn = draggedTask.closest('.task-column'); 
-
             column.appendChild(draggedTask); 
             
             if (originalColumn && originalColumn !== column) {
@@ -73,7 +83,6 @@ taskColumns.forEach(column => {
         }
     });
 });
-
 
 const toggleModalButton = document.querySelector("#toggle-modal");
 const modal = document.querySelector(".modal");
@@ -121,8 +130,10 @@ addNewTask.addEventListener("click", () => {
         div.classList.remove('is-dragging');
     });
 
+    // DELETE FEATURE: Attach delete listener to newly created task
+    attachDeleteListener(div);
+
     updateTaskCount(todo);
-    
     document.querySelector("#task-title").value = "";
     document.querySelector("#task-desc").value = "";
     modal.classList.remove("active");
