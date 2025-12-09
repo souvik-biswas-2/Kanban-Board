@@ -78,6 +78,7 @@ taskColumns.forEach(column => {
 const toggleModalButton = document.querySelector("#toggle-modal");
 const modal = document.querySelector(".modal");
 const modalBg = document.querySelector(".modal .bg");
+const addNewTask = document.querySelector("#add-new-task");
 
 toggleModalButton.addEventListener("click", (event) => {
     modal.classList.toggle("active");
@@ -85,4 +86,35 @@ toggleModalButton.addEventListener("click", (event) => {
 
 modalBg.addEventListener("click", (event) => {
     modal.classList.remove("active");   
+});
+
+addNewTask.addEventListener("click", () => {
+    const taskTitle = document.querySelector("#task-title").value;
+  const taskDesc = document.querySelector("#task-desc").value;
+
+  if (!taskTitle) {
+    alert("Please enter a task title.");
+    return;
+  }
+
+  const div = document.createElement("div");
+  div.classList.add("task");
+  div.setAttribute("draggable", "true");
+
+  div.innerHTML = `
+    <h3>${taskTitle}</h3>
+    <p>${taskDesc}</p>
+    <button class="delete-btn">Delete</button>
+  `;
+
+  todo.appendChild(div);
+
+  div.addEventListener("drag", (event) => {
+    dragElement = div;
+  });
+
+  document.querySelector("#task-title").value = "";
+  document.querySelector("#task-desc").value = "";
+
+  modal.classList.remove("active");
 });
