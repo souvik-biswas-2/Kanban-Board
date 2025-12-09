@@ -52,6 +52,11 @@ main{
     flex-direction: column;
 }
 
+.is-dragging {
+    opacity: 1 !important;
+    cursor: grabbing;
+}
+
 
 
 nav{
@@ -87,11 +92,12 @@ section .task-column{
     flex-direction: column;
     gap: var(--padding-s);
     padding: 0 var(--padding-xl);
+    transition: all 0.7s cubic-bezier(0.19, 1, 0.22, 1);
 }
 
 section .task-column.hover-over{
     border: 2px dashed var(--text-primary-color);
-    scale: 1.02;
+    scale: 1.05;
 }
 
 section .task-column .heading{
@@ -109,7 +115,7 @@ section .task-column .task{
     border-radius: var(--border-radius-l);
     display: flex;
     flex-direction: column;
-    padding: var(--padding-s);
+    padding: var(--padding-m);
     cursor: grab;
 }
 
